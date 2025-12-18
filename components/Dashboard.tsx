@@ -79,8 +79,14 @@ const InsightBox: React.FC<{ text: string; loading: boolean }> = ({ text, loadin
   );
 };
 
-// Use generic props for custom tooltips to satisfy Recharts injected properties
-const CustomScatterTooltip = ({ active, payload, isDark }: any) => {
+// Explicit prop types for custom tooltips to satisfy TypeScript and Recharts
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: any[];
+  isDark?: boolean;
+}
+
+const CustomScatterTooltip = ({ active, payload, isDark }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -97,7 +103,7 @@ const CustomScatterTooltip = ({ active, payload, isDark }: any) => {
   return null;
 };
 
-const CustomParetoTooltip = ({ active, payload, isDark }: any) => {
+const CustomParetoTooltip = ({ active, payload, isDark }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -346,7 +352,7 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
                   <XAxis type="number" dataKey="x" name="Days Open" unit="d" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
                   <YAxis type="number" dataKey="y" name="Priority" ticks={[1,2,3,4]} stroke="#64748b" fontSize={isZoomed ? 14 : 10} domain={[0, 5]} />
                   <ZAxis type="number" dataKey="z" range={isZoomed ? [100, 400] : [60, 240]} />
-                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomScatterTooltip isDark={isDark} />} />
+                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomScatterTooltip isDark={isDark} /> as React.ReactElement<any>} />
                   <Scatter name="Tasks" data={dashboardMetrics.scatterData} legendType="none">
                       {dashboardMetrics.scatterData.map((entry, index) => (
                           <Cell 
@@ -412,17 +418,19 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
                     label={{ value: 'Technical Risk Score (C x L)', angle: -90, position: 'insideLeft', offset: 10, fontSize: 12, fill: '#64748b', fontWeight: 'bold' }}
                   />
                   <ZAxis range={isZoomed ? [100, 400] : [60, 240]} />
-                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomParetoTooltip isDark={isDark} />} />
-                  <Legend
-                    verticalAlign="top"
-                    height={36}
-                    align="center"
-                    iconType="circle"
-                    wrapperStyle={{ top: 0 }}
-                    {...{ payload: [
-                      { value: 'High ROI / Frontier Task', type: 'circle', id: 'frontier', color: '#FF0000' },
-                      { value: 'Standard Risk & Active Task', type: 'circle', id: 'other', color: '#94a3b8' }
-                    ] } as any}
+                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomParetoTooltip isDark={isDark} /> as React.ReactElement<any>} />
+                  <Legend 
+                    {...({
+                      verticalAlign: "top",
+                      height: 36,
+                      align: "center",
+                      iconType: "circle",
+                      wrapperStyle: { top: 0 },
+                      payload: [
+                        { value: 'High ROI / Frontier Task', type: 'circle', id: 'frontier', color: '#FF0000' },
+                        { value: 'Standard Risk & Active Task', type: 'circle', id: 'other', color: '#94a3b8' }
+                      ]
+                    } as any)}
                   />
                   <Scatter name="" legendType="none" data={dashboardMetrics.paretoData}>
                       {dashboardMetrics.paretoData.map((entry, index) => (

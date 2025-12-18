@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { LayoutGrid, PlusCircle, List, BrainCircuit, FileText, Menu, X, Edit3, BarChart2, Fan, Sun, Moon, BookOpen, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Topic, DashboardMetrics, FilterState, ViewState, Status, AIMode, ThemeMode } from './types';
@@ -203,7 +202,7 @@ const App: React.FC = () => {
             <div className="space-y-2 mt-2">
               <NavButton 
                 view="docs" 
-                icon={<BookOpen className="w-5 h-5" />} 
+                icon={< BookOpen className="w-5 h-5" />} 
                 label={<>System<br />Documentation</>} 
                 title="System Documentation"
               />
@@ -268,7 +267,6 @@ const App: React.FC = () => {
            </h1>
            <div className="hidden md:flex flex-col items-end text-white/80 text-sm font-medium whitespace-nowrap">
              <span>Priority Technical Topics</span>
-             <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">Task designed by Poki</span>
            </div>
         </div>
         
@@ -407,11 +405,6 @@ const App: React.FC = () => {
           onClick={() => setMobileMenuOpen(false)}
         ></div>
       )}
-
-      {/* Footer credit */}
-      <footer className="fixed bottom-4 right-4 z-50 pointer-events-none print:hidden">
-          <p className="text-[10px] font-bold text-[#101F40]/30 dark:text-white/20 uppercase tracking-widest">Designed by Poki</p>
-      </footer>
     </div>
   );
 };

@@ -182,7 +182,6 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
               <h2 className="text-2xl font-bold text-[#101F40] dark:text-slate-100">
                 {initialData ? 'Update Task Details' : 'Create New Task'}
               </h2>
-              <p className="text-[10px] font-bold text-[#FE5800] uppercase tracking-widest opacity-70">Task designed by Poki</p>
            </div>
         </div>
         <button onClick={onCancel} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-full transition">
@@ -280,7 +279,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
                 tooltip="The current date of this update entry (Read-only)." 
             />
             <div className="relative">
-               <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+               <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
                <input
                  type="date"
                  value={today}
@@ -297,7 +296,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
                 tooltip="The target deadline by which this issue must be resolved to avoid site impact." 
             />
             <div className="relative">
-               <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#FE5800] w-5 h-5" />
+               <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#FE5800] h-5 w-5" />
                <input
                  type="date"
                  name="targetResolutionDate"
@@ -316,7 +315,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
                     tooltip="Provide a short explanation for this update entry (e.g., 'Target date delayed')." 
                  />
                  <div className="relative">
-                   <MessageSquare className="absolute left-4 top-4 text-slate-400 w-5 h-5" />
+                   <MessageSquare className="absolute left-4 top-4 text-slate-400 h-5 w-5" />
                    <textarea
                      name="updateNote"
                      rows={3}
@@ -335,7 +334,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
                     tooltip="Provide specific evidence to justify changes, especially for risk assessment adjustments (e.g., 'Based on meeting minutes from 12/04/24', 'Verified by site inspection report #88')." 
                  />
                  <div className="relative">
-                   <ClipboardCheck className="absolute left-4 top-4 text-[#FE5800] w-5 h-5" />
+                   <ClipboardCheck className="absolute left-4 top-4 text-[#FE5800] h-5 w-5" />
                    <textarea
                      name="evidence"
                      rows={3}
@@ -352,7 +351,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
           <div className="col-span-1 md:col-span-2 bg-[#F3F5F7] dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 transition-colors duration-300">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
                <h3 className="text-sm font-bold text-[#101F40] dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
-                 <Activity className="w-4 h-4 text-[#FE5800]" />
+                 <Activity className="h-4 w-4 text-[#FE5800]" />
                  Risk Assessment Model
                </h3>
                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-full shadow-sm border border-slate-100 dark:border-slate-800">
@@ -425,9 +424,9 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
                     <option value={RiskTrend.IMPROVING}>Improving</option>
                   </select>
                   <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                     {formData.riskTrend === RiskTrend.ESCALATING && <TrendingUp className="w-4 h-4 text-red-500" />}
-                     {formData.riskTrend === RiskTrend.STABLE && <Minus className="w-4 h-4 text-slate-400" />}
-                     {formData.riskTrend === RiskTrend.IMPROVING && <TrendingDown className="w-4 h-4 text-[#009900]" />}
+                     {formData.riskTrend === RiskTrend.ESCALATING && <TrendingUp className="h-4 w-4 text-red-500" />}
+                     {formData.riskTrend === RiskTrend.STABLE && <Minus className="h-4 w-4 text-slate-400" />}
+                     {formData.riskTrend === RiskTrend.IMPROVING && <TrendingDown className="h-4 w-4 text-[#009900]" />}
                   </div>
                 </div>
               </div>
@@ -487,7 +486,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
                 htmlFor="file-upload"
                 className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-slate-800 text-[#001A70] dark:text-blue-300 rounded-full text-sm font-bold hover:bg-blue-100 dark:hover:bg-slate-700 transition border border-blue-100 dark:border-slate-700"
               >
-                <Upload className="w-4 h-4" />
+                <Upload className="h-4 w-4" />
                 Upload File
               </label>
             </div>
@@ -529,7 +528,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
             type="submit"
             className="px-8 py-3 rounded-full bg-[#FE5800] hover:bg-[#D94A00] text-white font-bold flex items-center space-x-2 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
-            <Save className="w-4 h-4 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]" />
+            <Save className="h-4 w-4 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]" />
             <span className="drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">Save Task</span>
           </button>
         </div>
