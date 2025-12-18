@@ -13,7 +13,7 @@ const createHistory = (desc: string, dateOffsetDays = 0): TopicHistory => ({
 
 const MANUAL_SEED_DATA: Topic[] = [
   {
-    id: '1',
+    id: '00001',
     title: 'Reactor Coolant Pump Vibration Analysis',
     description: 'Higher than expected vibration readings on RCP-2B during hot functional testing commissioning phase.',
     department: Department.NUCLEAR_ISLAND,
@@ -41,7 +41,7 @@ const MANUAL_SEED_DATA: Topic[] = [
     ]
   },
   {
-    id: '2',
+    id: '00002',
     title: 'Turbine Hall Crane Certification',
     description: 'Documentation for the main overhead crane in the conventional island is pending final regulatory review.',
     department: Department.CONVENTIONAL_ISLAND,
@@ -61,7 +61,7 @@ const MANUAL_SEED_DATA: Topic[] = [
     ]
   },
   {
-    id: '3',
+    id: '00003',
     title: 'Concrete Pour Schedule - Slab 4',
     description: 'Weather delays impacting the civil works schedule for the auxiliary building foundation.',
     department: Department.CIVIL_WORKS,
@@ -78,7 +78,7 @@ const MANUAL_SEED_DATA: Topic[] = [
     history: [createHistory('Topic Created', 5)]
   },
   {
-    id: '4',
+    id: '00004',
     title: 'Steam Generator Delivery Logistics',
     description: 'Route survey update required for heavy haul transport of SG-1.',
     department: Department.EQUIPMENT,
@@ -106,7 +106,7 @@ const MANUAL_SEED_DATA: Topic[] = [
     ]
   },
   {
-    id: '5',
+    id: '00005',
     title: 'Fire Suppression System Test',
     description: 'Routine testing of the deluge system in Zone 3 completed successfully.',
     department: Department.SAFETY_LICENSING,
@@ -126,7 +126,7 @@ const MANUAL_SEED_DATA: Topic[] = [
     ]
   },
   {
-      id: '6',
+      id: '00006',
       title: 'Control Room HVAC Damper Failure',
       description: 'Dampers failing to close within specified time limits during interlock tests.',
       department: Department.NUCLEAR_ISLAND,
@@ -174,9 +174,9 @@ const generateMockTopics = (): Topic[] => {
     const sIndex = Math.floor(Math.random() * SUBTITLES.length);
 
     topics.push({
-      id: `mock-${i}`,
-      title: `${TITLES[tIndex]} - ${SUBTITLES[sIndex]} (${i})`,
-      description: `Automatically generated topic #${i} concerning ${TITLES[tIndex].toLowerCase()} in the ${SUBTITLES[sIndex]} area.`,
+      id: String(i + 1).padStart(5, '0'),
+      title: `${TITLES[tIndex]} - ${SUBTITLES[sIndex]} (${i + 1})`,
+      description: `Automatically generated topic #${i + 1} concerning ${TITLES[tIndex].toLowerCase()} in the ${SUBTITLES[sIndex]} area.`,
       department: dept,
       priority: prio,
       status: stat,

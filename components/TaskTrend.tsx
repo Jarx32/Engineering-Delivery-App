@@ -310,7 +310,7 @@ const TaskTrend: React.FC<TaskTrendProps> = ({ topics }) => {
              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 shrink-0 bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors duration-300">
                 <div className="flex flex-col md:flex-row gap-6 w-full">
                     <div className="flex-1">
-                        <h2 className="text-2xl font-bold text-[#101F40] dark:text-slate-100">Task Trend Analysis</h2>
+                        <h2 className="text-3xl font-bold text-[#101F40] dark:text-slate-100 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">Task Trend Analysis</h2>
                         <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Select tasks to compare risk trajectories and current exposure.</p>
                     </div>
                     

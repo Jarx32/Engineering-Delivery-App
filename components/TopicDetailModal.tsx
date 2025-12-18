@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Topic, Priority, Status, RiskTrend } from '../types';
-import { X, User, Calendar, FileText, Activity, Clock, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { X, User, Calendar, FileText, Activity, Clock, TrendingUp, TrendingDown, Minus, ClipboardCheck } from 'lucide-react';
 import TopicTrendChart from './TopicTrendChart';
 
 // --- Helper Badges (Duplicated here for self-containment/reusability) ---
@@ -145,7 +145,7 @@ const TopicDetailModal: React.FC<{ topic: Topic; onClose: () => void }> = ({ top
              {/* Right Column: Update History */}
              <div className="flex flex-col h-full">
                 <h3 className="text-sm font-bold text-[#101F40] dark:text-slate-100 uppercase tracking-wide mb-2 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-slate-500" /> Update Notes
+                  <Clock className="w-4 h-4 text-slate-500" /> Update Log & Evidence
                 </h3>
                 <div className="flex-grow bg-[#F3F5F7] dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-4 max-h-[400px] overflow-y-auto custom-scrollbar transition-colors">
                    {topic.history && topic.history.length > 0 ? (
@@ -153,10 +153,25 @@ const TopicDetailModal: React.FC<{ topic: Topic; onClose: () => void }> = ({ top
                         {topic.history.slice().reverse().map((h, idx) => (
                           <li key={idx} className="ml-6 relative">
                             <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-2 border-[#001A70] dark:border-blue-500"></div>
-                            <div className="bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
-                               <p className="text-sm font-bold text-[#101F40] dark:text-slate-200">{h.description}</p>
+                            <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                               <div className="flex justify-between items-start">
+                                  <p className="text-sm font-bold text-[#101F40] dark:text-slate-200">{h.description}</p>
+                                  <span className="text-[10px] text-slate-400 font-medium">{new Date(h.date).toLocaleDateString()}</span>
+                               </div>
+
+                               {h.evidence && (
+                                 <div className="bg-orange-50/50 dark:bg-orange-900/10 p-2.5 rounded border border-orange-100 dark:border-orange-900/30">
+                                    <p className="text-[10px] font-bold text-[#FE5800] uppercase mb-1 flex items-center gap-1">
+                                       <ClipboardCheck className="w-3 h-3" /> Evidence Justification
+                                    </p>
+                                    <p className="text-xs text-slate-600 dark:text-slate-300 italic leading-relaxed">
+                                       "{h.evidence}"
+                                    </p>
+                                 </div>
+                               )}
+
                                {h.changes && h.changes.length > 0 && (
-                                 <ul className="mt-2 text-xs text-slate-500 dark:text-slate-400 space-y-1 bg-slate-50 dark:bg-slate-800 p-2 rounded">
+                                 <ul className="text-[10px] text-slate-500 dark:text-slate-400 space-y-1 bg-slate-50 dark:bg-slate-800 p-2 rounded">
                                    {h.changes.map((c, cIdx) => (
                                      <li key={cIdx}>
                                        <span className="font-semibold">{c.field}:</span> {c.oldValue} &rarr; {c.newValue}
@@ -164,9 +179,9 @@ const TopicDetailModal: React.FC<{ topic: Topic; onClose: () => void }> = ({ top
                                    ))}
                                  </ul>
                                )}
-                               <p className="text-[10px] text-slate-400 mt-2 font-medium flex justify-between">
-                                  <span>{new Date(h.date).toLocaleDateString()} {new Date(h.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                                  <span>{h.user}</span>
+
+                               <p className="text-[10px] text-slate-400 font-medium text-right pt-1">
+                                  Updated by: <span className="text-[#001A70] dark:text-blue-400">{h.user}</span>
                                </p>
                             </div>
                           </li>

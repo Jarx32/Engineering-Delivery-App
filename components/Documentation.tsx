@@ -48,7 +48,7 @@ const Documentation: React.FC = () => {
     <div className="space-y-8 animate-fade-in max-w-6xl mx-auto pb-12 transition-colors duration-300">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-           <h2 className="text-3xl font-bold text-[#101F40] dark:text-slate-100 tracking-tight">System Architecture & Technical Manual</h2>
+           <h2 className="text-3xl font-bold text-[#101F40] dark:text-slate-100 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] tracking-tight">System Architecture & Technical Manual</h2>
            <p className="text-slate-500 dark:text-slate-400 mt-1 text-lg">Detailed specifications of the logic kernels, interactive models, and reporting governance.</p>
         </div>
         <button 

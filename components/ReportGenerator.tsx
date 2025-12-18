@@ -5,7 +5,7 @@ import { generateReportMetrics } from '../services/topicService';
 import { 
   ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend 
 } from 'recharts';
-import { FileText, Calendar, Printer, TrendingUp, TrendingDown, Download, FileSpreadsheet, Filter, X, Presentation, Activity, Info, Maximize2 } from 'lucide-react';
+import { FileText, Calendar, Printer, TrendingUp, TrendingDown, Download, FileSpreadsheet, Filter, X, Presentation, Activity, Info, Maximize2, Hash } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import PptxGenJS from 'pptxgenjs';
@@ -25,6 +25,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
   const [endDate, setEndDate] = useState<string>(today);
   const [selectedDept, setSelectedDept] = useState<string>('All');
   const [selectedTrend, setSelectedTrend] = useState<string>('All');
+  const [selectedId, setSelectedId] = useState<string>('All'); // New ID Filter State
   const [reportData, setReportData] = useState<ReportMetrics | null>(null);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [generatingPPT, setGeneratingPPT] = useState(false);
@@ -32,10 +33,16 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
 
   const isDark = document.documentElement.classList.contains('dark');
 
-  // Filter topics based on report-specific filters (Department, Trend) before generating metrics
+  // Filter topics based on report-specific filters (ID, Department, Trend)
   const activeTopics = React.useMemo(() => {
     let filtered = filteredTopics;
     
+    // Priority 1: Specific ID filtering
+    if (selectedId !== 'All') {
+      filtered = filtered.filter(t => t.id === selectedId);
+    }
+
+    // Secondary group filters
     if (selectedDept !== 'All') {
       filtered = filtered.filter(t => t.department === selectedDept);
     }
@@ -45,7 +52,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
     }
 
     return filtered;
-  }, [filteredTopics, selectedDept, selectedTrend]);
+  }, [filteredTopics, selectedId, selectedDept, selectedTrend]);
 
   useEffect(() => {
     if (startDate && endDate) {
@@ -59,6 +66,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
     setEndDate(today);
     setSelectedDept('All');
     setSelectedTrend('All');
+    setSelectedId('All');
   };
 
   const handleExportWord = () => {
@@ -68,7 +76,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
       <h1>PTT (Priority Technical Topics) Risk Assessment Report</h1>
       <p><strong>Engineering Delivery Division</strong></p>
       <p>Generated: ${new Date().toLocaleDateString()}</p>
-      <p>Filter: ${selectedDept} | Trend: ${selectedTrend} | Range: ${startDate} to ${endDate}</p>
+      <p>Filter: ${selectedId === 'All' ? 'None' : 'ID: ' + selectedId} | Area: ${selectedDept} | Trend: ${selectedTrend} | Range: ${startDate} to ${endDate}</p>
     `;
     const content = document.getElementById('report-content')?.innerHTML;
     const footer = "</body></html>";
@@ -152,7 +160,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
 
       const slide1 = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
       slide1.addText('Risk Assessment Overview', { x: 0.5, y: 1.0, w: 8, h: 0.5, fontSize: 24, bold: true, color: '101F40' });
-      slide1.addText(`Filter: ${selectedDept} | Trend: ${selectedTrend} | Range: ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`, { x: 0.5, y: 1.5, w: 8, h: 0.3, fontSize: 12, color: '666666' });
+      slide1.addText(`Filter: ${selectedId === 'All' ? 'All Tasks' : 'ID: '+selectedId} | Area: ${selectedDept} | Trend: ${selectedTrend}`, { x: 0.5, y: 1.5, w: 8, h: 0.3, fontSize: 12, color: '#666666' });
 
       const metricsImg = await capture('report-metrics-row');
       if (metricsImg) {
@@ -219,7 +227,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
     resolved: reportData.resolvedCount[i]
   })) : [];
 
-  const hasFilters = selectedDept !== 'All' || selectedTrend !== 'All' || startDate !== sixMonthsAgoStr || endDate !== today;
+  const hasFilters = selectedDept !== 'All' || selectedTrend !== 'All' || selectedId !== 'All' || startDate !== sixMonthsAgoStr || endDate !== today;
 
   const renderChartById = (id: string, isZoomed = false) => {
     switch (id) {
@@ -262,32 +270,52 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
 
   return (
     <div className="space-y-8" id="report-container">
-      {/* Configuration Header */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 no-print flex flex-col lg:flex-row gap-6 items-center justify-between transition-colors duration-300">
-        <div className="flex items-start gap-4 flex-1">
-           <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
-             <FileText className="w-6 h-6 text-[#001A70] dark:text-blue-400" />
+      {/* Configuration Header - Redesigned for horizontal single-line flow */}
+      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 no-print flex flex-col xl:flex-row gap-5 items-center transition-colors duration-300">
+        <div className="flex items-center gap-4 shrink-0">
+           <div className="p-2.5 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
+             <FileText className="w-5 h-5 text-[#001A70] dark:text-blue-400" />
            </div>
            <div>
-              <h3 className="font-bold text-[#101F40] dark:text-slate-100 text-lg drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)]">Report Configuration</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Generating analysis for <span className="font-bold text-[#FE5800]">{activeTopics.length} PTTs</span> based on current filters.
+              <h3 className="font-bold text-[#101F40] dark:text-slate-100 text-base drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)]">Configuration</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                Scope: <span className="font-bold text-[#FE5800]">{activeTopics.length} PTTs</span>
               </p>
            </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 w-full lg:flex-1 items-end">
-          <div className="flex gap-4 w-full flex-grow">
-            <div className="flex-1 min-w-0">
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Filter by Area</label>
+        {/* Filters Wrapper - Everything in one row on desktop */}
+        <div className="flex flex-wrap items-end gap-3 w-full xl:justify-end">
+            
+            {/* Topic ID - Reduced width to match others */}
+            <div className="w-full sm:w-[160px]">
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Topic ID</label>
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
+                <select
+                  value={selectedId}
+                  onChange={(e) => setSelectedId(e.target.value)}
+                  className="pl-8 w-full px-2 py-2 border border-slate-200 dark:border-slate-700 rounded-full focus:ring-2 focus:ring-[#FE5800] outline-none bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:border-slate-300 transition-colors"
+                >
+                  <option value="All">All IDs</option>
+                  {filteredTopics.map(t => (
+                    <option key={t.id} value={t.id}>{t.id}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Department Area */}
+            <div className="w-full sm:w-[160px]">
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Equipment Area</label>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
                 <select
                   value={selectedDept}
                   onChange={(e) => setSelectedDept(e.target.value)}
-                  className="pl-9 w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-full focus:ring-2 focus:ring-[#FE5800] outline-none bg-white dark:bg-slate-800 font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:border-slate-300 transition-colors text-left"
+                  className="pl-8 w-full px-2 py-2 border border-slate-200 dark:border-slate-700 rounded-full focus:ring-2 focus:ring-[#FE5800] outline-none bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:border-slate-300 transition-colors"
                 >
-                  <option value="All">All Departments</option>
+                  <option value="All">All Areas</option>
                   {Object.values(Department).map(d => (
                     <option key={d} value={d}>{d}</option>
                   ))}
@@ -295,14 +323,15 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
               </div>
             </div>
 
-            <div className="flex-1 min-w-0">
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Risk Trend</label>
+            {/* Risk Trend */}
+            <div className="w-full sm:w-[160px]">
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Risk Trend</label>
               <div className="relative">
-                <Activity className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <Activity className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
                 <select
                   value={selectedTrend}
                   onChange={(e) => setSelectedTrend(e.target.value)}
-                  className="pl-12 w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-full focus:ring-2 focus:ring-[#FE5800] outline-none bg-white dark:bg-slate-800 font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:border-slate-300 transition-colors text-left"
+                  className="pl-8 w-full px-2 py-2 border border-slate-200 dark:border-slate-700 rounded-full focus:ring-2 focus:ring-[#FE5800] outline-none bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:border-slate-300 transition-colors"
                 >
                   <option value="All">All Trends</option>
                   {Object.values(RiskTrend).map(t => (
@@ -311,40 +340,43 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
                 </select>
               </div>
             </div>
-          </div>
 
-          <div className="w-full sm:w-auto shrink-0">
-             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Analysis Period</label>
-             <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 transition-colors">
-                <Calendar className="w-4 h-4 text-slate-400" />
-                <input 
-                  type="date" 
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-transparent text-sm font-medium text-slate-700 dark:text-slate-200 outline-none w-32 cursor-pointer"
-                />
-                <span className="text-slate-400 text-xs font-bold">TO</span>
-                <input 
-                  type="date" 
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-transparent text-sm font-medium text-slate-700 dark:text-slate-200 outline-none w-32 cursor-pointer"
-                />
-             </div>
-          </div>
-
-          {hasFilters && (
-            <div className="w-full sm:w-auto shrink-0">
-               <button 
-                  onClick={clearFilters}
-                  className="px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-full transition-colors flex items-center justify-center gap-1 shadow-sm border border-transparent hover:border-red-100 mb-0.5"
-                  title="Reset to Defaults"
-                >
-                  <X className="w-4 h-4" />
-                  Clear
-                </button>
+            {/* Analysis Period - Slimmed down to match height and style */}
+            <div className="w-full sm:w-auto">
+                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Analysis Period</label>
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-3 py-2 transition-colors">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <input 
+                      type="date" 
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="bg-transparent text-[11px] font-medium text-slate-700 dark:text-slate-200 outline-none w-24 cursor-pointer"
+                    />
+                    <span className="text-slate-300 text-[10px] font-bold">TO</span>
+                    <input 
+                      type="date" 
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="bg-transparent text-[11px] font-medium text-slate-700 dark:text-slate-200 outline-none w-24 cursor-pointer"
+                    />
+                </div>
             </div>
-          )}
+
+            {/* Clear Button - Integrated into the same line */}
+            <div className="w-full sm:w-auto pb-0.5">
+               {hasFilters ? (
+                  <button 
+                     onClick={clearFilters}
+                     className="px-3 py-2 text-[11px] font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-full transition-colors flex items-center justify-center gap-1 shadow-sm border border-transparent hover:border-red-100"
+                     title="Reset to Defaults"
+                   >
+                     <X className="w-3.5 h-3.5" />
+                     Clear
+                   </button>
+               ) : (
+                 <div className="h-8 w-1"></div> // Spacer to keep height consistent
+               )}
+            </div>
         </div>
       </div>
 
@@ -353,8 +385,8 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
           <div className="flex justify-between items-center bg-[#101F40] text-white p-8 rounded-t-2xl shadow-lg print:bg-white print:text-black print:border-b-2 print:border-black">
             <div>
               <h1 className="text-3xl font-bold tracking-tight drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">PTT Risk Assessment Report</h1>
-              <p className="text-blue-200 print:text-slate-500 mt-1 drop-shadow-sm">
-                Engineering Delivery Division • {selectedDept === 'All' ? 'All Areas' : selectedDept} • {selectedTrend === 'All' ? 'All Trends' : selectedTrend} • {new Date(startDate).toLocaleDateString()} to {new Date(endDate).toLocaleDateString()}
+              <p className="text-blue-200 print:text-slate-500 mt-1 drop-shadow-sm text-sm">
+                Engineering Delivery Division • {selectedId !== 'All' ? `Topic ID: ${selectedId}` : (selectedDept === 'All' ? 'All Areas' : selectedDept)} • {selectedTrend === 'All' ? 'All Trends' : selectedTrend} • {new Date(startDate).toLocaleDateString()} to {new Date(endDate).toLocaleDateString()}
               </p>
             </div>
             <div className="flex gap-3 no-print">

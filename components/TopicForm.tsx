@@ -1,10 +1,10 @@
 
 import React, { useState, useRef } from 'react';
-import { Department, Priority, Status, Topic, Attachment, Likelihood, Consequence, RiskTrend } from '../types';
-import { Save, X, Paperclip, Upload, FileText, Trash2, TrendingUp, TrendingDown, Minus, Activity, AlertCircle, Info, Calendar, MessageSquare } from 'lucide-react';
+import { Department, Priority, Status, Topic, Attachment, Likelihood, Consequence, RiskTrend, TopicHistory } from '../types';
+import { Save, X, Paperclip, Upload, FileText, Trash2, TrendingUp, TrendingDown, Minus, Activity, AlertCircle, Info, Calendar, MessageSquare, ClipboardCheck } from 'lucide-react';
 
 interface TopicFormProps {
-  onSave: (topic: Topic, updateNote?: string) => void;
+  onSave: (topic: Topic, updateNote?: string, evidence?: string) => void;
   onCancel: () => void;
   initialData?: Topic | null;
 }
@@ -29,6 +29,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [updateNote, setUpdateNote] = useState<string>('');
+  const [evidence, setEvidence] = useState<string>(initialData?.evidence || '');
   
   const [formData, setFormData] = useState<Partial<Topic>>(initialData || {
     title: '',
@@ -37,7 +38,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
     priority: Priority.MEDIUM,
     status: Status.NEW,
     owner: '',
-    targetResolutionDate: '', // Initialize empty to force selection
+    targetResolutionDate: '', 
     consequence: Consequence.MODERATE,
     likelihood: Likelihood.POSSIBLE,
     riskTrend: RiskTrend.STABLE,
@@ -47,7 +48,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setError(null); // Clear error on edit
+    setError(null); 
     if (name === 'consequence' || name === 'likelihood') {
        setFormData(prev => ({ ...prev, [name]: parseInt(value) }));
     } else {
@@ -94,15 +95,48 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
     if (!formData.priority) missingFields.push('Priority Level');
     if (!formData.status) missingFields.push('Status');
     
+    // Check for evidence if this is an update and risk assessment changed
+    if (initialData) {
+        const riskChanged = initialData.consequence !== formData.consequence || initialData.likelihood !== formData.likelihood;
+        if (riskChanged && !evidence.trim()) {
+            missingFields.push('Evidence (Justification for Risk Change)');
+        }
+    }
+
     if (missingFields.length > 0) {
         setError(`Please fill in the following required fields: ${missingFields.join(', ')}`);
-        // Scroll to top to see error
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
     }
 
+    const updatedHistory = [...(initialData?.history || [])];
+    const newEntry: TopicHistory = {
+        date: new Date().toISOString(),
+        description: updateNote || (initialData ? 'Task Updated' : 'Task Created'),
+        user: formData.owner || 'System',
+        evidence: evidence,
+        changes: []
+    };
+
+    if (initialData) {
+        // Track specific changes
+        const fields: (keyof Topic)[] = ['priority', 'status', 'consequence', 'likelihood', 'riskTrend', 'department'];
+        fields.forEach(field => {
+            if (initialData[field] !== formData[field]) {
+                newEntry.changes?.push({
+                    field: field.charAt(0).toUpperCase() + field.slice(1),
+                    oldValue: initialData[field],
+                    newValue: formData[field]
+                });
+            }
+        });
+        updatedHistory.push(newEntry);
+    } else {
+        updatedHistory.push(newEntry);
+    }
+
     const newTopic: Topic = {
-      id: initialData?.id || crypto.randomUUID(),
+      id: initialData?.id || String(Math.floor(Math.random() * 90000) + 10000).padStart(5, '0'),
       title: formData.title!,
       description: formData.description!,
       department: formData.department as Department,
@@ -115,11 +149,12 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
       consequence: formData.consequence as Consequence,
       likelihood: formData.likelihood as Likelihood,
       riskTrend: formData.riskTrend as RiskTrend,
+      evidence: evidence,
       attachments: formData.attachments || [],
-      history: initialData?.history || []
+      history: updatedHistory
     };
 
-    onSave(newTopic, updateNote);
+    onSave(newTopic, updateNote, evidence);
   };
 
   const formatSize = (bytes: number) => {
@@ -142,9 +177,12 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
            <div className="bg-[#FE5800] p-2 rounded-full text-white">
               <Activity className="w-5 h-5" />
            </div>
-           <h2 className="text-2xl font-bold text-[#101F40] dark:text-slate-100">
-             {initialData ? 'Update Task Details' : 'Create New Task'}
-           </h2>
+           <div>
+              <h2 className="text-2xl font-bold text-[#101F40] dark:text-slate-100">
+                {initialData ? 'Update Task Details' : 'Create New Task'}
+              </h2>
+              <p className="text-[10px] font-bold text-[#FE5800] uppercase tracking-widest opacity-70">Task designed by Poki</p>
+           </div>
         </div>
         <button onClick={onCancel} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-full transition">
           <X className="w-6 h-6" />
@@ -269,23 +307,44 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
             </div>
           </div>
 
-          {/* Reason for Change */}
-          <div className="col-span-1 md:col-span-2">
-             <FormLabel 
-                label="Reason for Change / Update Note" 
-                tooltip="Provide a short explanation for this update or what necessitated the change (e.g., 'Risk escalated due to new data', 'Delayed by weather')." 
-             />
-             <div className="relative">
-               <MessageSquare className="absolute left-4 top-4 text-slate-400 w-5 h-5" />
-               <textarea
-                 name="updateNote"
-                 rows={2}
-                 placeholder="Explain what has changed..."
-                 value={updateNote}
-                 onChange={(e) => setUpdateNote(e.target.value)}
-                 className="w-full pl-12 pr-5 py-3 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-[#FE5800] focus:border-transparent outline-none transition text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 placeholder-slate-300 dark:placeholder-slate-600 shadow-sm transition-colors"
-               />
-             </div>
+          {/* Update Justification Logic */}
+          <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                 <FormLabel 
+                    label="Reason for Change / Update Note" 
+                    tooltip="Provide a short explanation for this update entry (e.g., 'Target date delayed')." 
+                 />
+                 <div className="relative">
+                   <MessageSquare className="absolute left-4 top-4 text-slate-400 w-5 h-5" />
+                   <textarea
+                     name="updateNote"
+                     rows={3}
+                     placeholder="Summary of what changed in this version..."
+                     value={updateNote}
+                     onChange={(e) => setUpdateNote(e.target.value)}
+                     className="w-full pl-12 pr-5 py-3 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-[#FE5800] focus:border-transparent outline-none transition text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 placeholder-slate-300 dark:placeholder-slate-600 shadow-sm transition-colors"
+                   />
+                 </div>
+              </div>
+
+              <div>
+                 <FormLabel 
+                    label="Evidence / Justification" 
+                    required={initialData && (initialData.consequence !== formData.consequence || initialData.likelihood !== formData.likelihood)}
+                    tooltip="Provide specific evidence to justify changes, especially for risk assessment adjustments (e.g., 'Based on meeting minutes from 12/04/24', 'Verified by site inspection report #88')." 
+                 />
+                 <div className="relative">
+                   <ClipboardCheck className="absolute left-4 top-4 text-[#FE5800] w-5 h-5" />
+                   <textarea
+                     name="evidence"
+                     rows={3}
+                     placeholder="What evidence justifies this change? (e.g. Meeting results, inspection data...)"
+                     value={evidence}
+                     onChange={(e) => setEvidence(e.target.value)}
+                     className="w-full pl-12 pr-5 py-3 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-[#FE5800] focus:border-transparent outline-none transition text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 placeholder-slate-300 dark:placeholder-slate-600 shadow-sm transition-colors"
+                   />
+                 </div>
+              </div>
           </div>
 
           {/* Risk Assessment Section */}

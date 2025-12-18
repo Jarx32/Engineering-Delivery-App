@@ -63,6 +63,7 @@ export interface TopicHistory {
   date: string;
   description: string;
   user: string;
+  evidence?: string;
   changes?: {
     field: string;
     oldValue: any;
@@ -84,6 +85,7 @@ export interface Topic {
   consequence: Consequence;
   likelihood: Likelihood;
   riskTrend: RiskTrend;
+  evidence?: string; // Last provided evidence
   comments?: string;
   attachments?: Attachment[];
   history: TopicHistory[];

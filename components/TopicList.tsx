@@ -159,7 +159,7 @@ const TopicList: React.FC<TopicListProps> = ({ topics, filters, onFilterChange, 
 
   const exportToCSV = () => {
     const headers = [
-      'ID', 'Title', 'Description', 'Department', 'Priority', 'Status', 
+      'Task ID', 'Title', 'Description', 'Department', 'Priority', 'Status', 
       'Owner', 'Risk Score', 'Consequence', 'Likelihood', 'Trend', 
       'Target Date', 'Created At'
     ];
@@ -299,7 +299,7 @@ const TopicList: React.FC<TopicListProps> = ({ topics, filters, onFilterChange, 
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-[#FE5800] transition-colors" />
               <input
                 type="text"
-                placeholder="Search tasks, owners..."
+                placeholder="Search tasks, owners, or ID (e.g. 00001)..."
                 value={filters.searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onFocus={() => setShowDropdown(true)}
@@ -319,7 +319,7 @@ const TopicList: React.FC<TopicListProps> = ({ topics, filters, onFilterChange, 
                         <div className="flex justify-between items-center">
                           <div>
                             <p className="font-bold text-[#101F40] dark:text-slate-200 text-sm">{t.title}</p>
-                            <p className="text-xs text-slate-400 font-mono mt-0.5">{t.id} • {t.owner}</p>
+                            <p className="text-xs text-slate-400 font-mono mt-0.5">ID: {t.id} • {t.owner}</p>
                           </div>
                           <ArrowRight className="w-3 h-3 text-slate-300" />
                         </div>
@@ -455,7 +455,8 @@ const TopicList: React.FC<TopicListProps> = ({ topics, filters, onFilterChange, 
           <table className="w-full text-left border-collapse" ref={tableRef}>
             <thead>
               <tr className="bg-[#001A70] text-white text-xs font-bold uppercase tracking-wider">
-                <th className="px-6 py-5 rounded-tl-lg drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">Trend</th>
+                <th className="px-6 py-5 rounded-tl-lg drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">Task ID</th>
+                <th className="px-6 py-5 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] text-center">Trend</th>
                 <th className="px-6 py-5 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">Priority</th>
                 <th className="px-6 py-5 w-1/3 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">Topic Details</th>
                 <th className="px-6 py-5 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">Department</th>
@@ -468,6 +469,9 @@ const TopicList: React.FC<TopicListProps> = ({ topics, filters, onFilterChange, 
               {topics.length > 0 ? (
                 topics.map((topic) => (
                   <tr key={topic.id} className="hover:bg-blue-50/40 dark:hover:bg-slate-800/50 transition duration-200 group">
+                    <td className="px-6 py-5 whitespace-nowrap font-mono text-sm font-bold text-slate-500 dark:text-slate-400">
+                      {topic.id}
+                    </td>
                     <td className="px-6 py-5 whitespace-nowrap">
                       <div className="flex justify-center">
                           <div className={topic.riskTrend === RiskTrend.ESCALATING ? "text-red-500" : topic.riskTrend === RiskTrend.IMPROVING ? "text-green-500" : "text-slate-400"}>
@@ -533,7 +537,7 @@ const TopicList: React.FC<TopicListProps> = ({ topics, filters, onFilterChange, 
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-16 text-center text-slate-500 dark:text-slate-400">
+                  <td colSpan={8} className="px-6 py-16 text-center text-slate-500 dark:text-slate-400">
                     <div className="flex flex-col items-center">
                       <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
                         <Search className="w-6 h-6 text-slate-400" />

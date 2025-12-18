@@ -59,8 +59,8 @@ const App: React.FC = () => {
     localStorage.setItem('ptt_theme', theme);
   }, [theme]);
 
-  const handleSaveTopic = (topic: Topic, updateNote?: string) => {
-    TopicService.saveTopic(topic, updateNote);
+  const handleSaveTopic = (topic: Topic) => {
+    TopicService.saveTopic(topic);
     refreshData();
     setCurrentView('list');
     setEditingTopic(null);
@@ -80,7 +80,8 @@ const App: React.FC = () => {
   const filteredTopics = useMemo(() => {
     return topics.filter(topic => {
       const matchesSearch = topic.title.toLowerCase().includes(filters.searchTerm.toLowerCase()) || 
-                            topic.owner.toLowerCase().includes(filters.searchTerm.toLowerCase());
+                            topic.owner.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+                            topic.id.toLowerCase().includes(filters.searchTerm.toLowerCase());
       
       const matchesDept = filters.department === 'All' || topic.department === filters.department;
       
@@ -265,8 +266,9 @@ const App: React.FC = () => {
            <h1 className="text-white text-2xl md:text-4xl font-bold tracking-tight drop-shadow-xl font-sans whitespace-nowrap overflow-hidden text-ellipsis" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
              Engineering Delivery App <span className="text-lg md:text-xl text-white/80 ml-2 font-medium whitespace-nowrap">v 1.0</span>
            </h1>
-           <div className="hidden md:flex items-center space-x-2 text-white/80 text-sm font-medium whitespace-nowrap">
+           <div className="hidden md:flex flex-col items-end text-white/80 text-sm font-medium whitespace-nowrap">
              <span>Priority Technical Topics</span>
+             <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">Task designed by Poki</span>
            </div>
         </div>
         
@@ -320,7 +322,7 @@ const App: React.FC = () => {
              <div className="animate-fade-in h-full flex flex-col">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
                   <div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#101F40] dark:text-slate-100 tracking-tight">Task Tracker</h2>
+                    <h2 className="text-3xl font-bold text-[#101F40] dark:text-slate-100 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] tracking-tight">Task Tracker</h2>
                     <p className="text-slate-500 dark:text-slate-400 mt-1 text-base md:text-lg">Manage engineering priorities and risk status</p>
                   </div>
                   <button 
@@ -350,7 +352,7 @@ const App: React.FC = () => {
                   >
                     ← Back to Tracker
                   </button>
-                  <h2 className="text-3xl font-bold text-[#101F40] dark:text-slate-100">{editingTopic ? 'Edit Topic' : 'New Topic'}</h2>
+                  <h2 className="text-3xl font-bold text-[#101F40] dark:text-slate-100 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">{editingTopic ? 'Edit Topic' : 'New Topic'}</h2>
                 </div>
                 <TopicForm 
                   onSave={handleSaveTopic} 
@@ -381,7 +383,7 @@ const App: React.FC = () => {
           {currentView === 'insights' && (
             <div className="animate-fade-in">
                <div className="mb-8">
-                 <h2 className="text-3xl font-bold text-[#101F40] dark:text-slate-100 mb-2">Executive Summary</h2>
+                 <h2 className="text-3xl font-bold text-[#101F40] dark:text-slate-100 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] mb-2">Executive Summary</h2>
                  <p className="text-slate-500 dark:text-slate-400 text-lg">Analysis based on current task data</p>
                </div>
                <AIInsights 
@@ -405,6 +407,11 @@ const App: React.FC = () => {
           onClick={() => setMobileMenuOpen(false)}
         ></div>
       )}
+
+      {/* Footer credit */}
+      <footer className="fixed bottom-4 right-4 z-50 pointer-events-none print:hidden">
+          <p className="text-[10px] font-bold text-[#101F40]/30 dark:text-white/20 uppercase tracking-widest">Designed by Poki</p>
+      </footer>
     </div>
   );
 };

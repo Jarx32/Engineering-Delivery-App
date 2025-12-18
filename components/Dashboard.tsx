@@ -315,7 +315,7 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                     <Label value={dashboardMetrics.totalTopics.toString()} position="center" className={`font-extrabold ${isZoomed ? 'text-5xl' : 'text-2xl'} ${isDark ? 'fill-slate-100' : 'fill-[#101F40]'}`} dy={-5} />
-                    <Label value="TASKS" position="center" className={`${isZoomed ? 'text-lg' : 'text-[10px]'} font-bold fill-slate-400`} dy={isZoomed ? 25 : 15} />
+                    <Label value="TASPS" position="center" className={`${isZoomed ? 'text-lg' : 'text-[10px]'} font-bold fill-slate-400`} dy={isZoomed ? 25 : 15} />
                 </Pie>
                 <Tooltip />
                 <Legend verticalAlign="bottom" height={36} iconType="circle" />
@@ -448,7 +448,7 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
     <div className="space-y-8 pb-12 transition-colors">
       <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
           <div>
-            <h2 className="text-3xl xl:text-4xl font-bold text-[#101F40] dark:text-slate-100 tracking-tight">Dashboard</h2>
+            <h2 className="text-3xl font-bold text-[#101F40] dark:text-slate-100 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">Dashboard</h2>
             <p className="text-slate-500 dark:text-slate-400 mt-2 text-base xl:text-lg">Operational risk and mathematical trend analysis.</p>
           </div>
           <div className="flex flex-wrap gap-3">

@@ -181,7 +181,7 @@ const AIInsights: React.FC<AIInsightsProps> = ({ topics, aiMode, setAiMode }) =>
              <Filter className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-bold text-[#101F40] dark:text-slate-100">Statistical Analysis Context</h3>
+            <h3 className="font-bold text-[#101F40] dark:text-slate-100 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">Executive Summary</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400">Defining data bounds for deterministic logic.</p>
           </div>
         </div>
