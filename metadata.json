@@ -1,0 +1,5 @@
+{
+  "name": "Engineering Delivery Portal",
+  "description": "A centralized technical topic tracker for nuclear build projects (PTT). Captures topics, allows for monthly ranking, tracks risk trends over time, and provides neural network driven insights.",
+  "requestFramePermissions": []
+}
