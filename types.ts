@@ -1,6 +1,14 @@
 
 import React from 'react';
 
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      API_KEY: string;
+    }
+  }
+}
+
 export enum Department {
   NUCLEAR_ISLAND = 'Nuclear Island',
   CONVENTIONAL_ISLAND = 'Conventional Island',

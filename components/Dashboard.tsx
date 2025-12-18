@@ -346,7 +346,7 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis type="number" dataKey="x" name="Days Open" unit="d" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
                   <YAxis type="number" dataKey="y" name="Priority" ticks={[1,2,3,4]} stroke="#64748b" fontSize={isZoomed ? 14 : 10} domain={[0, 5]} />
-                  <ZAxis type="number" dataKey="z" range={isZoomed ? [200, 1000] : [100, 500]} />
+                  <ZAxis type="number" dataKey="z" range={isZoomed ? [100, 500] : [50, 250]} />
                   <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomScatterTooltip isDark={isDark} />} />
                   <Scatter name="Tasks" data={dashboardMetrics.scatterData}>
                       {dashboardMetrics.scatterData.map((entry, index) => (
@@ -398,7 +398,7 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis type="number" dataKey="effort" name="Effort" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
                   <YAxis type="number" dataKey="risk" name="Risk" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
-                  <ZAxis range={isZoomed ? [200, 600] : [100, 300]} />
+                  <ZAxis range={isZoomed ? [100, 300] : [50, 150]} />
                   <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomParetoTooltip isDark={isDark} />} />
                   <Scatter name="Tasks" data={dashboardMetrics.paretoData}>
                       {dashboardMetrics.paretoData.map((entry, index) => (

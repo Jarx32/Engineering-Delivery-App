@@ -122,11 +122,13 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
         // Track specific changes
         const fields: (keyof Topic)[] = ['priority', 'status', 'consequence', 'likelihood', 'riskTrend', 'department'];
         fields.forEach(field => {
-            if (initialData[field] !== formData[field]) {
+            const oldValue = initialData[field];
+            const newValue = formData[field];
+            if (oldValue !== newValue && newValue !== undefined) {
                 newEntry.changes?.push({
                     field: field.charAt(0).toUpperCase() + field.slice(1),
-                    oldValue: initialData[field],
-                    newValue: formData[field]
+                    oldValue: oldValue,
+                    newValue: newValue
                 });
             }
         });
