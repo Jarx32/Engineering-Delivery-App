@@ -79,8 +79,15 @@ const InsightBox: React.FC<{ text: string; loading: boolean }> = ({ text, loadin
   );
 };
 
-// Use generic 'any' for props to ensure Recharts injected properties (like payload) are accepted by TS
-const CustomScatterTooltip = ({ active, payload, isDark }: any) => {
+// Interface to satisfy TypeScript for custom tooltips injected by Recharts
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+  isDark?: boolean;
+}
+
+const CustomScatterTooltip = ({ active, payload, isDark }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -97,7 +104,7 @@ const CustomScatterTooltip = ({ active, payload, isDark }: any) => {
   return null;
 };
 
-const CustomParetoTooltip = ({ active, payload, isDark }: any) => {
+const CustomParetoTooltip = ({ active, payload, isDark }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (

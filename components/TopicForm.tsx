@@ -331,7 +331,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
               <div>
                  <FormLabel 
                     label="Evidence / Justification" 
-                    required={initialData ? (initialData.consequence !== formData.consequence || initialData.likelihood !== formData.likelihood) : false}
+                    required={!!(initialData && (initialData.consequence !== formData.consequence || initialData.likelihood !== formData.likelihood))}
                     tooltip="Provide specific evidence to justify changes, especially for risk assessment adjustments (e.g., 'Based on meeting minutes from 12/04/24', 'Verified by site inspection report #88')." 
                  />
                  <div className="relative">
