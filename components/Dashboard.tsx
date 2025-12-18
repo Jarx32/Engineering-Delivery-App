@@ -323,7 +323,17 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
                     <Label value="TASKS" position="center" className={`${isZoomed ? 'text-lg' : 'text-[10px]'} font-bold fill-slate-400`} dy={isZoomed ? 25 : 15} />
                 </Pie>
                 <Tooltip />
-                <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={isZoomed ? 36 : 45} 
+                  iconType="circle" 
+                  iconSize={isZoomed ? 12 : 10}
+                  wrapperStyle={{ 
+                    fontSize: isZoomed ? '14px' : '10px', 
+                    bottom: isZoomed ? 0 : 10,
+                    fontWeight: '600'
+                  }} 
+                />
               </PieChart>
           </ResponsiveContainer>
         );
