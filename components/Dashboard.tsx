@@ -413,16 +413,16 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
                   />
                   <ZAxis range={isZoomed ? [100, 400] : [60, 240]} />
                   <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomParetoTooltip isDark={isDark} />} />
-                  <Legend 
-                    verticalAlign="top" 
-                    height={36} 
+                  <Legend
+                    verticalAlign="top"
+                    height={36}
                     align="center"
                     iconType="circle"
                     wrapperStyle={{ top: 0 }}
-                    payload={[
+                    {...{ payload: [
                       { value: 'High ROI / Frontier Task', type: 'circle', id: 'frontier', color: '#FF0000' },
                       { value: 'Standard Risk & Active Task', type: 'circle', id: 'other', color: '#94a3b8' }
-                    ]}
+                    ] } as any}
                   />
                   <Scatter name="" legendType="none" data={dashboardMetrics.paretoData}>
                       {dashboardMetrics.paretoData.map((entry, index) => (
