@@ -352,20 +352,20 @@ export const getMetrics = (topics: Topic[]): DashboardMetrics => {
     [Priority.LOW]: 1, [Priority.MEDIUM]: 2, [Priority.HIGH]: 3, [Priority.CRITICAL]: 4
   };
 
-  topics.forEach(t => {
-    if (t.status !== Status.RESOLVED) {
-        byDepartmentMap.set(t.department, (byDepartmentMap.get(t.department) || 0) + 1);
-        byPriorityMap.set(t.priority, (byPriorityMap.get(t.priority) || 0) + 1);
-        if (!heatmapMatrix[t.department]) heatmapMatrix[t.department] = {};
-        heatmapMatrix[t.department][t.priority] = (heatmapMatrix[t.department][t.priority] || 0) + 1;
-        
-        const diffTime = Math.abs(Date.now() - new Date(t.createdAt).getTime());
-        const daysOpen = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-        scatterData.push({
-          id: t.id, x: daysOpen, y: priorityValueMap[t.priority], z: 10,
-          name: t.title, priorityLabel: t.priority, owner: t.owner, department: t.department 
-        });
-    }
+  const activeTopics = topics.filter(t => t.status !== Status.RESOLVED);
+
+  activeTopics.forEach(t => {
+    byDepartmentMap.set(t.department, (byDepartmentMap.get(t.department) || 0) + 1);
+    byPriorityMap.set(t.priority, (byPriorityMap.get(t.priority) || 0) + 1);
+    if (!heatmapMatrix[t.department]) heatmapMatrix[t.department] = {};
+    heatmapMatrix[t.department][t.priority] = (heatmapMatrix[t.department][t.priority] || 0) + 1;
+    
+    const diffTime = Math.abs(Date.now() - new Date(t.createdAt).getTime());
+    const daysOpen = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    scatterData.push({
+      id: t.id, x: daysOpen, y: priorityValueMap[t.priority], z: 10,
+      name: t.title, priorityLabel: t.priority, owner: t.owner, department: t.department 
+    });
   });
 
   const heatmapData: HeatmapCell[] = [];
@@ -397,11 +397,11 @@ export const getMetrics = (topics: Topic[]): DashboardMetrics => {
   const netChange = endRisk - startRisk - newRisk + resolvedRisk;
 
   return {
-    totalTopics: topics.length,
-    criticalCount: topics.filter(t => t.priority === Priority.CRITICAL && t.status !== Status.RESOLVED).length,
+    totalTopics: activeTopics.length,
+    criticalCount: activeTopics.filter(t => t.priority === Priority.CRITICAL).length,
     resolvedCount: topics.filter(t => t.status === Status.RESOLVED).length,
-    escalatingCount: topics.filter(t => t.riskTrend === RiskTrend.ESCALATING && t.status !== Status.RESOLVED).length,
-    improvingCount: topics.filter(t => t.riskTrend === RiskTrend.IMPROVING && t.status !== Status.RESOLVED).length,
+    escalatingCount: activeTopics.filter(t => t.riskTrend === RiskTrend.ESCALATING).length,
+    improvingCount: activeTopics.filter(t => t.riskTrend === RiskTrend.IMPROVING).length,
     byDepartment: Array.from(byDepartmentMap, ([name, value]) => ({ name, value })),
     byPriority: Array.from(byPriorityMap, ([name, value]) => ({ name, value })),
     scatterData,

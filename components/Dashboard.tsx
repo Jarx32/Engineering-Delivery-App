@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, 
@@ -113,7 +112,7 @@ const CustomParetoTooltip = ({ active, payload, isDark }: any) => {
               <span className="font-bold text-white">{data.risk}</span>
             </div>
             {data.isFrontier && (
-              <div className="mt-2 text-[10px] font-bold text-[#FE5800] uppercase tracking-wider">Efficient Frontier Topic</div>
+              <div className="mt-2 text-[10px] font-bold text-[#FF0000] uppercase tracking-wider">High ROI Topic</div>
             )}
         </div>
       </div>
@@ -131,7 +130,8 @@ const ChartCard: React.FC<{
   accentColor?: string;
   definition?: string;
   onZoom?: () => void;
-}> = ({ title, subtitle, children, id, colSpan = "col-span-1", accentColor = "bg-[#001A70]", definition, onZoom }) => {
+  minHeight?: string;
+}> = ({ title, subtitle, children, id, colSpan = "col-span-1", accentColor = "bg-[#001A70]", definition, onZoom, minHeight = "min-h-[450px]" }) => {
   const handleDownload = async () => {
     const element = document.getElementById(id);
     if (element) {
@@ -185,7 +185,7 @@ const ChartCard: React.FC<{
           </button>
         </div>
       </div>
-      <div className="p-6 xl:p-8 pt-0 flex-grow flex flex-col min-h-[350px]">
+      <div className={`p-6 xl:p-8 pt-0 flex-grow flex flex-col ${minHeight}`}>
         {children}
       </div>
     </div>
@@ -295,8 +295,6 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
 
   // Helper for Chart Selection
   const renderChartById = (id: string, isZoomed = false) => {
-    const commonProps = { isZoomed };
-    
     switch (id) {
       case 'chart-dept-dist':
         return (
@@ -315,7 +313,7 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                     <Label value={dashboardMetrics.totalTopics.toString()} position="center" className={`font-extrabold ${isZoomed ? 'text-5xl' : 'text-2xl'} ${isDark ? 'fill-slate-100' : 'fill-[#101F40]'}`} dy={-5} />
-                    <Label value="TASPS" position="center" className={`${isZoomed ? 'text-lg' : 'text-[10px]'} font-bold fill-slate-400`} dy={isZoomed ? 25 : 15} />
+                    <Label value="TASKS" position="center" className={`${isZoomed ? 'text-lg' : 'text-[10px]'} font-bold fill-slate-400`} dy={isZoomed ? 25 : 15} />
                 </Pie>
                 <Tooltip />
                 <Legend verticalAlign="bottom" height={36} iconType="circle" />
@@ -346,9 +344,9 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis type="number" dataKey="x" name="Days Open" unit="d" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
                   <YAxis type="number" dataKey="y" name="Priority" ticks={[1,2,3,4]} stroke="#64748b" fontSize={isZoomed ? 14 : 10} domain={[0, 5]} />
-                  <ZAxis type="number" dataKey="z" range={isZoomed ? [100, 500] : [50, 250]} />
+                  <ZAxis type="number" dataKey="z" range={isZoomed ? [100, 400] : [60, 240]} />
                   <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomScatterTooltip isDark={isDark} />} />
-                  <Scatter name="Tasks" data={dashboardMetrics.scatterData}>
+                  <Scatter name="Tasks" data={dashboardMetrics.scatterData} legendType="none">
                       {dashboardMetrics.scatterData.map((entry, index) => (
                           <Cell 
                             key={`cell-${index}`} 
@@ -394,15 +392,46 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
       case 'chart-pareto':
         return (
           <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 0 }}>
+              <ScatterChart margin={{ top: 40, right: 30, bottom: 50, left: 50 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" dataKey="effort" name="Effort" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
-                  <YAxis type="number" dataKey="risk" name="Risk" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
-                  <ZAxis range={isZoomed ? [100, 300] : [50, 150]} />
+                  <XAxis 
+                    type="number" 
+                    dataKey="effort" 
+                    name="Effort" 
+                    stroke="#64748b" 
+                    fontSize={isZoomed ? 14 : 10}
+                    label={{ value: 'Operational Effort (Complexity Weight)', position: 'insideBottom', offset: -10, fontSize: 12, fill: '#64748b', fontWeight: 'bold' }}
+                  />
+                  <YAxis 
+                    type="number" 
+                    dataKey="risk" 
+                    name="Risk" 
+                    stroke="#64748b" 
+                    fontSize={isZoomed ? 14 : 10}
+                    label={{ value: 'Technical Risk Score (C x L)', angle: -90, position: 'insideLeft', offset: 10, fontSize: 12, fill: '#64748b', fontWeight: 'bold' }}
+                  />
+                  <ZAxis range={isZoomed ? [100, 400] : [60, 240]} />
                   <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomParetoTooltip isDark={isDark} />} />
-                  <Scatter name="Tasks" data={dashboardMetrics.paretoData}>
+                  <Legend 
+                    verticalAlign="top" 
+                    height={36} 
+                    align="center"
+                    iconType="circle"
+                    wrapperStyle={{ top: 0 }}
+                    payload={[
+                      { value: 'High ROI / Frontier Task', type: 'circle', id: 'frontier', color: '#FF0000' },
+                      { value: 'Standard Risk & Active Task', type: 'circle', id: 'other', color: '#94a3b8' }
+                    ]}
+                  />
+                  <Scatter name="" legendType="none" data={dashboardMetrics.paretoData}>
                       {dashboardMetrics.paretoData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.isFrontier ? '#FE5800' : '#94a3b8'} fillOpacity={entry.isFrontier ? 1 : 0.5} stroke="#000000" strokeWidth={0.5} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.isFrontier ? '#FF0000' : '#94a3b8'} 
+                        fillOpacity={entry.isFrontier ? 1 : 0.6} 
+                        stroke="#000000" 
+                        strokeWidth={1.5} 
+                      />
                       ))}
                   </Scatter>
               </ScatterChart>
@@ -427,12 +456,16 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
       case 'chart-stability':
         return (
           <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={dashboardMetrics.controlData}>
+              <ComposedChart data={dashboardMetrics.controlData} margin={{ top: 30, left: 40, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="date" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
-                  <YAxis stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
+                  <YAxis 
+                    stroke="#64748b" 
+                    fontSize={isZoomed ? 14 : 10} 
+                    label={{ value: 'Net Stability / Task Volume', angle: -90, position: 'insideLeft', offset: -10, fontSize: 12, fill: '#64748b', fontWeight: 'bold' }}
+                  />
                   <Tooltip />
-                  <Legend verticalAlign="top" height={36}/>
+                  <Legend verticalAlign="top" height={36} align="center" iconType="circle" wrapperStyle={{ top: 0 }} />
                   <Bar dataKey="gain" name="Gain (New)" fill="#ef4444" radius={[4, 4, 0, 0]} opacity={0.3} stroke="#000000" strokeWidth={0.5} />
                   <Bar dataKey="damping" name="Damping (Resolved)" fill="#009900" radius={[4, 4, 0, 0]} opacity={0.3} stroke="#000000" strokeWidth={0.5} />
                   <Line type="monotone" dataKey="stability" name="Net Stability" stroke="#001A70" strokeWidth={isZoomed ? 6 : 4} dot={{r: isZoomed ? 6 : 4, fill: '#FE5800', stroke: '#000', strokeWidth: 1}} />
