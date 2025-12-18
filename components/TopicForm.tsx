@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Department, Priority, Status, Topic, Attachment, Likelihood, Consequence, RiskTrend, TopicHistory } from '../types';
 import { Save, X, Paperclip, Upload, FileText, Trash2, TrendingUp, TrendingDown, Minus, Activity, AlertCircle, Info, Calendar, MessageSquare, ClipboardCheck } from 'lucide-react';
@@ -332,7 +331,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ onSave, onCancel, initialData }) 
               <div>
                  <FormLabel 
                     label="Evidence / Justification" 
-                    required={initialData && (initialData.consequence !== formData.consequence || initialData.likelihood !== formData.likelihood)}
+                    required={!!(initialData && (initialData.consequence !== formData.consequence || initialData.likelihood !== formData.likelihood))}
                     tooltip="Provide specific evidence to justify changes, especially for risk assessment adjustments (e.g., 'Based on meeting minutes from 12/04/24', 'Verified by site inspection report #88')." 
                  />
                  <div className="relative">
