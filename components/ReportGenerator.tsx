@@ -235,45 +235,48 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
            </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto items-center">
-          {/* Department Filter - Increased width and optimized padding */}
-          <div className="w-full sm:min-w-[280px]">
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Filter by Area</label>
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <select
-                value={selectedDept}
-                onChange={(e) => setSelectedDept(e.target.value)}
-                className="pl-9 w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-full focus:ring-2 focus:ring-[#FE5800] outline-none bg-white dark:bg-slate-800 font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:border-slate-300 transition-colors truncate"
-              >
-                <option value="All">All Departments</option>
-                {Object.values(Department).map(d => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
+        <div className="flex flex-col sm:flex-row gap-6 w-full lg:flex-1 items-end">
+          {/* Dual Dropdown Container for 50/50 layout */}
+          <div className="flex gap-4 w-full flex-grow">
+            {/* Department Filter - Now 50% width */}
+            <div className="flex-1 min-w-0">
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Filter by Area</label>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <select
+                  value={selectedDept}
+                  onChange={(e) => setSelectedDept(e.target.value)}
+                  className="pl-9 w-full px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-full focus:ring-2 focus:ring-[#FE5800] outline-none bg-white dark:bg-slate-800 font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:border-slate-300 transition-colors text-left"
+                >
+                  <option value="All">All Departments</option>
+                  {Object.values(Department).map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
 
-          {/* Trend Filter */}
-          <div className="w-full sm:w-48">
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Risk Trend</label>
-            <div className="relative">
-              <Activity className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <select
-                value={selectedTrend}
-                onChange={(e) => setSelectedTrend(e.target.value)}
-                className="pl-12 w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-full focus:ring-2 focus:ring-[#FE5800] outline-none bg-white dark:bg-slate-800 font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:border-slate-300 transition-colors"
-              >
-                <option value="All">All Trends</option>
-                {Object.values(RiskTrend).map(t => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
+            {/* Trend Filter - Now 50% width */}
+            <div className="flex-1 min-w-0">
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Risk Trend</label>
+              <div className="relative">
+                <Activity className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <select
+                  value={selectedTrend}
+                  onChange={(e) => setSelectedTrend(e.target.value)}
+                  className="pl-12 w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-full focus:ring-2 focus:ring-[#FE5800] outline-none bg-white dark:bg-slate-800 font-medium text-slate-700 dark:text-slate-200 cursor-pointer hover:border-slate-300 transition-colors text-left"
+                >
+                  <option value="All">All Trends</option>
+                  {Object.values(RiskTrend).map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
           {/* Date Range Filter */}
-          <div className="w-full sm:w-auto">
+          <div className="w-full sm:w-auto shrink-0">
              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Analysis Period</label>
              <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 transition-colors">
                 <Calendar className="w-4 h-4 text-slate-400" />
@@ -294,10 +297,10 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ filteredTopics }) => 
           </div>
 
           {hasFilters && (
-            <div className="w-full sm:w-auto mt-6 sm:mt-0">
+            <div className="w-full sm:w-auto shrink-0">
                <button 
                   onClick={clearFilters}
-                  className="px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-full transition-colors flex items-center justify-center gap-1 w-full shadow-sm border border-transparent hover:border-red-100"
+                  className="px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-full transition-colors flex items-center justify-center gap-1 shadow-sm border border-transparent hover:border-red-100 mb-0.5"
                   title="Reset to Defaults"
                 >
                   <X className="w-4 h-4" />
