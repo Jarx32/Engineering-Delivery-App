@@ -6,7 +6,7 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LineChart, Line, ComposedChart
 } from 'recharts';
 import { DashboardMetrics, Priority, Topic, Consequence, Likelihood, Department, Status, AIMode } from '../types';
-import { Activity, BrainCircuit, ShieldCheck, Download, Info, Zap, Filter, Calendar, X, Printer, Calculator, ChevronDown, Check, TrendingUp } from 'lucide-react';
+import { Activity, BrainCircuit, ShieldCheck, Download, Info, Zap, Filter, Calendar, X, Printer, Calculator, ChevronDown, Check, TrendingUp, Maximize2 } from 'lucide-react';
 import { generateDashboardInsights } from '../services/geminiService';
 import { getMetrics } from '../services/topicService';
 import html2canvas from 'html2canvas';
@@ -130,7 +130,8 @@ const ChartCard: React.FC<{
   colSpan?: string;
   accentColor?: string;
   definition?: string;
-}> = ({ title, subtitle, children, id, colSpan = "col-span-1", accentColor = "bg-[#001A70]", definition }) => {
+  onZoom?: () => void;
+}> = ({ title, subtitle, children, id, colSpan = "col-span-1", accentColor = "bg-[#001A70]", definition, onZoom }) => {
   const handleDownload = async () => {
     const element = document.getElementById(id);
     if (element) {
@@ -150,7 +151,7 @@ const ChartCard: React.FC<{
     <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col ${colSpan} relative group z-0 hover:z-10 h-full transition-colors`} id={id}>
       <div className={`absolute top-0 left-0 w-full h-1.5 ${accentColor} rounded-t-2xl`}></div>
       <div className="p-6 xl:p-8 pb-4 flex justify-between items-start flex-shrink-0">
-        <div>
+        <div className="flex-1">
           <div className="flex items-center gap-2">
              <h3 className="text-lg xl:text-xl font-bold text-[#101F40] dark:text-slate-100">{title}</h3>
              {definition && (
@@ -165,12 +166,24 @@ const ChartCard: React.FC<{
           </div>
           {subtitle && <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{subtitle}</p>}
         </div>
-        <button 
-          onClick={handleDownload}
-          className="text-slate-300 dark:text-slate-600 hover:text-[#FE5800] transition p-2 rounded-full hover:bg-orange-50 dark:hover:bg-orange-900/10 no-capture"
-        >
-          <Download className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-1 no-capture">
+          {onZoom && (
+            <button 
+              onClick={onZoom}
+              className="text-slate-300 dark:text-slate-600 hover:text-[#001A70] dark:hover:text-blue-400 transition p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              title="Zoom Chart"
+            >
+              <Maximize2 className="w-5 h-5" />
+            </button>
+          )}
+          <button 
+            onClick={handleDownload}
+            className="text-slate-300 dark:text-slate-600 hover:text-[#FE5800] transition p-2 rounded-full hover:bg-orange-50 dark:hover:bg-orange-900/10"
+            title="Download Chart as Image"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+        </div>
       </div>
       <div className="p-6 xl:p-8 pt-0 flex-grow flex flex-col min-h-[350px]">
         {children}
@@ -185,6 +198,7 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
   const [selectedCell, setSelectedCell] = useState<{c: number, l: number} | null>(null);
   const [viewingTopic, setViewingTopic] = useState<Topic | null>(null);
   const [exportingPDF, setExportingPDF] = useState(false);
+  const [zoomedChartId, setZoomedChartId] = useState<string | null>(null);
   
   // Filter States
   const [filterDept, setFilterDept] = useState<string>('All');
@@ -279,6 +293,157 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
   const totalRiskScore = filteredTopics.reduce((acc, t) => acc + (t.consequence * t.likelihood), 0);
   const avgRiskScore = filteredTopics.length > 0 ? (totalRiskScore / filteredTopics.length).toFixed(1) : "0.0";
 
+  // Helper for Chart Selection
+  const renderChartById = (id: string, isZoomed = false) => {
+    const commonProps = { isZoomed };
+    
+    switch (id) {
+      case 'chart-dept-dist':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                    data={dashboardMetrics.byDepartment}
+                    innerRadius={isZoomed ? 120 : 60}
+                    outerRadius={isZoomed ? 160 : 80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="#000000"
+                    strokeWidth={1}
+                >
+                    {dashboardMetrics.byDepartment.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                    <Label value={dashboardMetrics.totalTopics.toString()} position="center" className={`font-extrabold ${isZoomed ? 'text-5xl' : 'text-2xl'} ${isDark ? 'fill-slate-100' : 'fill-[#101F40]'}`} dy={-5} />
+                    <Label value="TASKS" position="center" className={`${isZoomed ? 'text-lg' : 'text-[10px]'} font-bold fill-slate-400`} dy={isZoomed ? 25 : 15} />
+                </Pie>
+                <Tooltip />
+                <Legend verticalAlign="bottom" height={36} iconType="circle" />
+              </PieChart>
+          </ResponsiveContainer>
+        );
+      case 'chart-waterfall':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dashboardMetrics.waterfallData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="name" fontSize={isZoomed ? 14 : 11} stroke="#64748b" />
+                  <YAxis fontSize={isZoomed ? 14 : 11} stroke="#64748b" />
+                  <Tooltip cursor={{fill: 'transparent'}} />
+                  <ReferenceLine y={0} stroke="#94a3b8" />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]} stroke="#000000" strokeWidth={1} barSize={isZoomed ? 48 : 24}>
+                      {dashboardMetrics.waterfallData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                  </Bar>
+              </BarChart>
+          </ResponsiveContainer>
+        );
+      case 'chart-scatter':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis type="number" dataKey="x" name="Days Open" unit="d" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
+                  <YAxis type="number" dataKey="y" name="Priority" ticks={[1,2,3,4]} stroke="#64748b" fontSize={isZoomed ? 14 : 10} domain={[0, 5]} />
+                  <ZAxis type="number" dataKey="z" range={isZoomed ? [200, 1000] : [100, 500]} />
+                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomScatterTooltip isDark={isDark} />} />
+                  <Scatter name="Tasks" data={dashboardMetrics.scatterData}>
+                      {dashboardMetrics.scatterData.map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={PRIORITY_COLORS[entry.priorityLabel as Priority] || COLORS[index % COLORS.length]} 
+                            fillOpacity={0.8}
+                            stroke="#000000"
+                            strokeWidth={1}
+                          />
+                      ))}
+                  </Scatter>
+              </ScatterChart>
+          </ResponsiveContainer>
+        );
+      case 'chart-trend':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={dashboardMetrics.riskTrendData}>
+                  <defs>
+                      <linearGradient id="colorRiskTrendZoom" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#001A70" stopOpacity={0.4}/><stop offset="95%" stopColor="#001A70" stopOpacity={0.05}/>
+                      </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="date" fontSize={isZoomed ? 14 : 10} stroke="#64748b" tickLine={false} axisLine={false} minTickGap={30} />
+                  <YAxis fontSize={isZoomed ? 14 : 10} stroke="#64748b" tickLine={false} axisLine={false} />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="totalRiskScore" stroke="#001A70" strokeWidth={isZoomed ? 4 : 3} fill="url(#colorRiskTrendZoom)" name="Total Risk" />
+              </AreaChart>
+          </ResponsiveContainer>
+        );
+      case 'chart-entropy':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius={isZoomed ? "85%" : "80%"} data={dashboardMetrics.entropyData}>
+                  <PolarGrid stroke="#e2e8f0" />
+                  <PolarAngleAxis dataKey="subject" tick={{fontSize: isZoomed ? 14 : 10, fill: '#64748b'}} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                  <Radar name="Entropy Score" dataKey="entropy" stroke="#502D7F" fill="#502D7F" fillOpacity={0.6} />
+                  <Tooltip />
+              </RadarChart>
+          </ResponsiveContainer>
+        );
+      case 'chart-pareto':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis type="number" dataKey="effort" name="Effort" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
+                  <YAxis type="number" dataKey="risk" name="Risk" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
+                  <ZAxis range={isZoomed ? [200, 600] : [100, 300]} />
+                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomParetoTooltip isDark={isDark} />} />
+                  <Scatter name="Tasks" data={dashboardMetrics.paretoData}>
+                      {dashboardMetrics.paretoData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.isFrontier ? '#FE5800' : '#94a3b8'} fillOpacity={entry.isFrontier ? 1 : 0.5} stroke="#000000" strokeWidth={0.5} />
+                      ))}
+                  </Scatter>
+              </ScatterChart>
+          </ResponsiveContainer>
+        );
+      case 'chart-bayesian':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dashboardMetrics.bayesianData} layout="vertical" margin={{ left: isZoomed ? 100 : 50 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                  <XAxis type="number" domain={[0, 100]} unit="%" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
+                  <YAxis dataKey="name" type="category" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
+                  <Tooltip />
+                  <Bar dataKey="probability" fill="#009900" radius={[0, 4, 4, 0]} barSize={isZoomed ? 40 : 20} stroke="#000000" strokeWidth={0.5}>
+                      {dashboardMetrics.bayesianData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fillOpacity={1 - entry.variance * 2} /> 
+                      ))}
+                  </Bar>
+              </BarChart>
+          </ResponsiveContainer>
+        );
+      case 'chart-stability':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={dashboardMetrics.controlData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="date" stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
+                  <YAxis stroke="#64748b" fontSize={isZoomed ? 14 : 10} />
+                  <Tooltip />
+                  <Legend verticalAlign="top" height={36}/>
+                  <Bar dataKey="gain" name="Gain (New)" fill="#ef4444" radius={[4, 4, 0, 0]} opacity={0.3} stroke="#000000" strokeWidth={0.5} />
+                  <Bar dataKey="damping" name="Damping (Resolved)" fill="#009900" radius={[4, 4, 0, 0]} opacity={0.3} stroke="#000000" strokeWidth={0.5} />
+                  <Line type="monotone" dataKey="stability" name="Net Stability" stroke="#001A70" strokeWidth={isZoomed ? 6 : 4} dot={{r: isZoomed ? 6 : 4, fill: '#FE5800', stroke: '#000', strokeWidth: 1}} />
+              </ComposedChart>
+          </ResponsiveContainer>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="space-y-8 pb-12 transition-colors">
       <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
@@ -362,28 +527,8 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
 
         <div className="space-y-8">
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                <ChartCard title="Department Load" subtitle="Active Tasks per Area" id="chart-dept-dist" accentColor="bg-[#001A70]" definition="Distribution of technical topics across various engineering departments to identify resource pressure.">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                              data={dashboardMetrics.byDepartment}
-                              innerRadius={60}
-                              outerRadius={80}
-                              paddingAngle={5}
-                              dataKey="value"
-                              stroke="#000000"
-                              strokeWidth={1}
-                          >
-                              {dashboardMetrics.byDepartment.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                              ))}
-                              <Label value={dashboardMetrics.totalTopics.toString()} position="center" className={`text-2xl font-extrabold ${isDark ? 'fill-slate-100' : 'fill-[#101F40]'}`} dy={-5} />
-                              <Label value="TASKS" position="center" className="text-[10px] font-bold fill-slate-400" dy={15} />
-                          </Pie>
-                          <Tooltip />
-                          <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                        </PieChart>
-                    </ResponsiveContainer>
+                <ChartCard title="Department Load" subtitle="Active Tasks per Area" id="chart-dept-dist" accentColor="bg-[#001A70]" definition="Distribution of technical topics across various engineering departments to identify resource pressure." onZoom={() => setZoomedChartId('chart-dept-dist')}>
+                    {renderChartById('chart-dept-dist')}
                     <InsightBox text={insights?.distributionInsight || ''} loading={loadingInsights} />
                 </ChartCard>
 
@@ -430,65 +575,20 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Risk Waterfall */}
-                <ChartCard title="Risk Waterfall" subtitle="30-Day Score Movement" id="chart-waterfall" accentColor="bg-[#009900]" definition="Tracks the net movement of risk score over the last 30 days, bridging initial and final exposure.">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={dashboardMetrics.waterfallData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis dataKey="name" fontSize={11} stroke="#64748b" />
-                            <YAxis fontSize={11} stroke="#64748b" />
-                            <Tooltip cursor={{fill: 'transparent'}} />
-                            <ReferenceLine y={0} stroke="#94a3b8" />
-                            <Bar dataKey="value" radius={[4, 4, 0, 0]} stroke="#000000" strokeWidth={1} barSize={24}>
-                                {dashboardMetrics.waterfallData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.fill} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                <ChartCard title="Risk Waterfall" subtitle="30-Day Score Movement" id="chart-waterfall" accentColor="bg-[#009900]" definition="Tracks the net movement of risk score over the last 30 days, bridging initial and final exposure." onZoom={() => setZoomedChartId('chart-waterfall')}>
+                    {renderChartById('chart-waterfall')}
                     <InsightBox text={insights?.waterfallInsight || ''} loading={loadingInsights} />
                 </ChartCard>
 
                 {/* Aging vs Priority Scatter Plot */}
-                <ChartCard title="Aging vs Priority" subtitle="Days Open vs Urgency" id="chart-scatter" accentColor="bg-[#FE5800]" definition="Scatter analysis showing how long tasks have been open relative to their urgency level.">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis type="number" dataKey="x" name="Days Open" unit="d" stroke="#64748b" fontSize={10} />
-                            <YAxis type="number" dataKey="y" name="Priority" ticks={[1,2,3,4]} stroke="#64748b" fontSize={10} domain={[0, 5]} />
-                            <ZAxis type="number" dataKey="z" range={[100, 500]} />
-                            <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomScatterTooltip isDark={isDark} />} />
-                            <Scatter name="Tasks" data={dashboardMetrics.scatterData}>
-                                {dashboardMetrics.scatterData.map((entry, index) => (
-                                    <Cell 
-                                      key={`cell-${index}`} 
-                                      fill={PRIORITY_COLORS[entry.priorityLabel as Priority] || COLORS[index % COLORS.length]} 
-                                      fillOpacity={0.8}
-                                      stroke="#000000"
-                                      strokeWidth={1}
-                                    />
-                                ))}
-                            </Scatter>
-                        </ScatterChart>
-                    </ResponsiveContainer>
+                <ChartCard title="Aging vs Priority" subtitle="Days Open vs Urgency" id="chart-scatter" accentColor="bg-[#FE5800]" definition="Scatter analysis showing how long tasks have been open relative to their urgency level." onZoom={() => setZoomedChartId('chart-scatter')}>
+                    {renderChartById('chart-scatter')}
                     <InsightBox text={insights?.agingInsight || ''} loading={loadingInsights} />
                 </ChartCard>
 
                 {/* Compact Cumulative Risk Trend */}
-                <ChartCard title="Cumulative Risk Trend" subtitle="Risk evolution (30d)" id="chart-trend" accentColor="bg-[#101F40]" definition="Historical time-series of total divisional risk exposure over a rolling 30-day window.">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={dashboardMetrics.riskTrendData}>
-                            <defs>
-                                <linearGradient id="colorRiskTrend" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#001A70" stopOpacity={0.4}/><stop offset="95%" stopColor="#001A70" stopOpacity={0.05}/>
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis dataKey="date" fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} minTickGap={30} />
-                            <YAxis fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} />
-                            <Tooltip />
-                            <Area type="monotone" dataKey="totalRiskScore" stroke="#001A70" strokeWidth={3} fill="url(#colorRiskTrend)" name="Total Risk" />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                <ChartCard title="Cumulative Risk Trend" subtitle="Risk evolution (30d)" id="chart-trend" accentColor="bg-[#101F40]" definition="Historical time-series of total divisional risk exposure over a rolling 30-day window." onZoom={() => setZoomedChartId('chart-trend')}>
+                    {renderChartById('chart-trend')}
                 </ChartCard>
             </div>
         </div>
@@ -505,75 +605,73 @@ const Dashboard: React.FC<DashboardProps> = ({ metrics: initialMetrics, topics, 
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                <ChartCard title="Workflow Entropy (Information Theory)" id="chart-entropy" accentColor="bg-[#502D7F]" definition="Shannon Entropy (H) measures status diversity. High H = healthy parallel flow. Low H = serial stagnation/bottlenecks.">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={dashboardMetrics.entropyData}>
-                            <PolarGrid stroke="#e2e8f0" />
-                            <PolarAngleAxis dataKey="subject" tick={{fontSize: 10, fill: '#64748b'}} />
-                            <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                            <Radar name="Entropy Score" dataKey="entropy" stroke="#502D7F" fill="#502D7F" fillOpacity={0.6} />
-                            <Tooltip />
-                        </RadarChart>
-                    </ResponsiveContainer>
+                <ChartCard title="Workflow Entropy (Information Theory)" id="chart-entropy" accentColor="bg-[#502D7F]" definition="Shannon Entropy (H) measures status diversity. High H = healthy parallel flow. Low H = serial stagnation/bottlenecks." onZoom={() => setZoomedChartId('chart-entropy')}>
+                    {renderChartById('chart-entropy')}
                     <InsightBox text={insights?.entropyInsight || ''} loading={loadingInsights} />
                 </ChartCard>
 
-                <ChartCard title="Pareto Efficient Frontier (OR)" id="chart-pareto" accentColor="bg-[#FE5800]" definition="Highlights 'High-ROI' tasks. Frontier items provide the maximum risk reduction potential for the given operational resources.">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis type="number" dataKey="effort" name="Effort" stroke="#64748b" fontSize={10} />
-                            <YAxis type="number" dataKey="risk" name="Risk" stroke="#64748b" fontSize={10} />
-                            <ZAxis range={[100, 300]} />
-                            <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomParetoTooltip isDark={isDark} />} />
-                            <Scatter name="Tasks" data={dashboardMetrics.paretoData}>
-                                {dashboardMetrics.paretoData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.isFrontier ? '#FE5800' : '#94a3b8'} fillOpacity={entry.isFrontier ? 1 : 0.5} stroke="#000000" strokeWidth={0.5} />
-                                ))}
-                            </Scatter>
-                        </ScatterChart>
-                    </ResponsiveContainer>
+                <ChartCard title="Pareto Efficient Frontier (OR)" id="chart-pareto" accentColor="bg-[#FE5800]" definition="Highlights 'High-ROI' tasks. Frontier items provide the maximum risk reduction potential for the given operational resources." onZoom={() => setZoomedChartId('chart-pareto')}>
+                    {renderChartById('chart-pareto')}
                     <InsightBox text={insights?.paretoInsight || ''} loading={loadingInsights} />
                 </ChartCard>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                <ChartCard title="Bayesian Delivery Confidence" id="chart-bayesian" accentColor="bg-[#009900]" definition="P(Success) using Beta distributions. Calculates probability of meeting divisional targets based on historical velocity.">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={dashboardMetrics.bayesianData} layout="vertical" margin={{ left: 50 }}>
-                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                            <XAxis type="number" domain={[0, 100]} unit="%" stroke="#64748b" fontSize={10} />
-                            <YAxis dataKey="name" type="category" stroke="#64748b" fontSize={10} />
-                            <Tooltip />
-                            <Bar dataKey="probability" fill="#009900" radius={[0, 4, 4, 0]} barSize={20} stroke="#000000" strokeWidth={0.5}>
-                                {dashboardMetrics.bayesianData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fillOpacity={1 - entry.variance * 2} /> 
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                <ChartCard title="Bayesian Delivery Confidence" id="chart-bayesian" accentColor="bg-[#009900]" definition="P(Success) using Beta distributions. Calculates probability of meeting divisional targets based on historical velocity." onZoom={() => setZoomedChartId('chart-bayesian')}>
+                    {renderChartById('chart-bayesian')}
                     <InsightBox text={insights?.bayesianInsight || ''} loading={loadingInsights} />
                 </ChartCard>
 
-                <ChartCard title="System Stability (Control Theory)" id="chart-stability" accentColor="bg-[#001A70]" definition="Analyzes the project as a dynamic control loop. Gain (New Risk) vs Damping (Resolution). Positive stability = clearing backlog.">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={dashboardMetrics.controlData}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis dataKey="date" stroke="#64748b" fontSize={10} />
-                            <YAxis stroke="#64748b" fontSize={10} />
-                            <Tooltip />
-                            <Legend verticalAlign="top" height={36}/>
-                            <Bar dataKey="gain" name="Gain (New)" fill="#ef4444" radius={[4, 4, 0, 0]} opacity={0.3} stroke="#000000" strokeWidth={0.5} />
-                            <Bar dataKey="damping" name="Damping (Resolved)" fill="#009900" radius={[4, 4, 0, 0]} opacity={0.3} stroke="#000000" strokeWidth={0.5} />
-                            <Line type="monotone" dataKey="stability" name="Net Stability" stroke="#001A70" strokeWidth={4} dot={{r: 4, fill: '#FE5800', stroke: '#000', strokeWidth: 1}} />
-                        </ComposedChart>
-                    </ResponsiveContainer>
+                <ChartCard title="System Stability (Control Theory)" id="chart-stability" accentColor="bg-[#001A70]" definition="Analyzes the project as a dynamic control loop. Gain (New Risk) vs Damping (Resolution). Positive stability = clearing backlog." onZoom={() => setZoomedChartId('chart-stability')}>
+                    {renderChartById('chart-stability')}
                     <InsightBox text={insights?.controlInsight || ''} loading={loadingInsights} />
                 </ChartCard>
             </div>
         </div>
       </div>
       
+      {/* Zoom Modal */}
+      {zoomedChartId && (
+        <div 
+          className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 md:p-12 animate-fade-in cursor-zoom-out"
+          onClick={() => setZoomedChartId(null)}
+        >
+          <div 
+            className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-6xl h-full max-h-[85vh] flex flex-col p-8 md:p-12 shadow-2xl border border-slate-100 dark:border-slate-800 cursor-default animate-scale-up"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-8 shrink-0">
+               <div>
+                 <h2 className="text-3xl font-bold text-[#101F40] dark:text-white">
+                    {zoomedChartId === 'chart-dept-dist' && 'Department Load'}
+                    {zoomedChartId === 'chart-waterfall' && 'Risk Waterfall'}
+                    {zoomedChartId === 'chart-scatter' && 'Aging vs Priority'}
+                    {zoomedChartId === 'chart-trend' && 'Cumulative Risk Trend'}
+                    {zoomedChartId === 'chart-entropy' && 'Workflow Entropy'}
+                    {zoomedChartId === 'chart-pareto' && 'Pareto Efficient Frontier'}
+                    {zoomedChartId === 'chart-bayesian' && 'Bayesian Delivery Confidence'}
+                    {zoomedChartId === 'chart-stability' && 'System Stability'}
+                 </h2>
+                 <p className="text-slate-500 dark:text-slate-400 mt-1">Detailed mathematical visualization</p>
+               </div>
+               <button 
+                 onClick={() => setZoomedChartId(null)}
+                 className="p-3 bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-red-500 rounded-full transition-all border border-slate-100 dark:border-slate-700"
+               >
+                 <X className="w-8 h-8" />
+               </button>
+            </div>
+            <div className="flex-grow min-h-0 bg-slate-50 dark:bg-slate-950 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 overflow-hidden shadow-inner">
+               {renderChartById(zoomedChartId, true)}
+            </div>
+            <div className="mt-6 flex justify-between items-center text-slate-400 text-xs font-medium uppercase tracking-widest shrink-0">
+               <span>PTT.Risk Analytical Core</span>
+               <span className="flex items-center gap-1"><Info className="w-3.5 h-3.5" /> Click anywhere outside to close</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {viewingTopic && <TopicDetailModal topic={viewingTopic} onClose={() => setViewingTopic(null)} />}
     </div>
   );
